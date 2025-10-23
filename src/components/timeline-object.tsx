@@ -8,14 +8,20 @@ const TimelineObject = ({
   end,
   title,
   isFirst,
+  dragOffset,
   onTrimChange,
+  onDragOffset,
+  onDragEnd,
 }: {
   id: string;
   start: number;
   end: number;
   title: string;
   isFirst: boolean;
+  dragOffset: number;
   onTrimChange: (id: string, newStart: number, newEnd: number) => void;
+  onDragOffset: (offset: number) => void;
+  onDragEnd: () => void;
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState<"left" | "right" | null>(null);
@@ -49,6 +55,9 @@ const TimelineObject = ({
       const minWidth = 5; // Minimum clip width percentage
 
       if (handle === "left") {
+        // Update the first block's margin based on drag distance (only for left trim)
+        onDragOffset(deltaPercent);
+
         // Allow negative values (dragging beyond left edge)
         newStart = Math.min(startValue + deltaPercent, endValue - minWidth);
       } else {
@@ -65,6 +74,9 @@ const TimelineObject = ({
 
     const handleMouseUp = () => {
       setIsDragging(null);
+
+      // Reset the drag offset (margin goes back to 0)
+      onDragEnd();
 
       // Snap back if dragged beyond the left boundary
       if (handle === "left") {
@@ -92,7 +104,7 @@ const TimelineObject = ({
       style={{
         width: `${end - start}%`,
         flexShrink: 0,
-        marginLeft: isFirst ? `${start}%` : 0,
+        marginLeft: isFirst ? `${start + dragOffset}%` : 0,
       }}
       className="bg-red-500 border h-10 px-2 relative group"
     >

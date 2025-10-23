@@ -26,45 +26,33 @@ const initialTimelineItems = [
 
 const Timeline = () => {
   const [timelineItems, setTimelineItems] = useState(initialTimelineItems);
+  const [dragOffset, setDragOffset] = useState(0);
 
   const handleTrimChange = (id: string, newStart: number, newEnd: number) => {
     setTimelineItems((items) => {
-      const currentIndex = items.findIndex((item) => item.id === id);
-      const currentItem = items[currentIndex];
-
-      // Calculate the shift for subsequent clips
-      const endDiff = newEnd - currentItem.end;
-
-      return items.map((item, index) => {
-        // Update the current item
+      return items.map((item) => {
+        // Only update the current item being trimmed
         if (item.id === id) {
           return { ...item, start: newStart, end: newEnd };
         }
-
-        // Update the previous item (extend/shrink its end to match current's start)
-        if (index === currentIndex - 1) {
-          return { ...item, end: newStart };
-        }
-
-        // Update all subsequent items (shift them by the amount current's end changed)
-        if (index > currentIndex) {
-          return {
-            ...item,
-            start: item.start + endDiff,
-            end: item.end + endDiff,
-          };
-        }
-
         return item;
       });
     });
+  };
+
+  const handleDragOffset = (offset: number) => {
+    setDragOffset(offset);
+  };
+
+  const resetDragOffset = () => {
+    setDragOffset(0);
   };
 
   console.table(timelineItems);
 
   return (
     <div className="h-screen w-screen flex items-center justify-center px-12">
-      <div className="border border-white w-full flex overflow-hidden">
+      <div className="border border-white w-full flex ">
         {timelineItems.map((item, index) => (
           <TimelineObject
             key={item.id}
@@ -73,7 +61,10 @@ const Timeline = () => {
             end={item.end}
             title={item.title}
             isFirst={index === 0}
+            dragOffset={dragOffset}
             onTrimChange={handleTrimChange}
+            onDragOffset={handleDragOffset}
+            onDragEnd={resetDragOffset}
           />
         ))}
       </div>
